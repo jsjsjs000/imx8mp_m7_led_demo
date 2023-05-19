@@ -1,0 +1,19 @@
+{
+	"files.associations": {
+		"fsl_device_registers.h": "c",
+		"fsl_debug_console.h": "c",
+		"clock_config.h": "c"
+	},
+	"makefile.configurations": [
+		{
+			"name": "Default",
+			"makeArgs": []
+		},
+		{
+			"name": "Print make version",
+			"makeArgs": ["--version"]
+		}
+	],
+	"makefile.makeDirectory": "armgcc",
+	"makefile.launchConfigurations": []
+}
