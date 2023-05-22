@@ -43,6 +43,11 @@ void main(void)
 		// PUTCHAR(c);
 		// if (c == '\r')
 		// 	PUTCHAR('\n');
+
+		if (c < 32 || c > 127)
+			PRINTF("%d ", c);
+		else
+			PRINTF("%c ", c);
 	}
 }
 
@@ -80,9 +85,13 @@ build_release.bat
 	# Visual Studio Code:
 Ctrl+Shift+B - run Makefile
 
+	Add user to dialout group - access to UART without root permission
+sudo adduser $USER dialout
+# logout
+
 	Debug in UART1/2:
-sudo minicom -w -D /dev/ttyUSB0
-sudo minicom -w -D /dev/ttyUSB1
+minicom -w -D /dev/ttyUSB0
+minicom -w -D /dev/ttyUSB1
 
 	Set TFTP server:
 sudo nano /etc/xinetd.d/tftp
@@ -99,7 +108,7 @@ sudo apt install autokey-gtk
 			Hotkey: Ctrl+Alt+Q
 			Window Filter: gnome-terminal-server.Gnome-terminal
 		Add new: minicom in Terminal
-			Command: sudo minicom -w -D /dev/ttyUSB
+			Command: minicom -w -D /dev/ttyUSB
 			Hotkey: Ctrl+Alt+M
 			Window Filter: gnome-terminal-server.Gnome-terminal
 
