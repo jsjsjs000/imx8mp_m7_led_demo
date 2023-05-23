@@ -21,7 +21,16 @@ void main(void)
 	while (true)
 	{
 		char c = GETCHAR();
-		if (c == '\r' || c == '\n')
+
+		// PUTCHAR(c);
+		// if (c == '\r')
+		// 	PUTCHAR('\n');
+		// if (c < 32 || c > 127)
+		// 	PRINTF("%d ", c);
+		// else
+		// 	PRINTF("'%c' ", c);
+
+		if (/* $$ c == '\r' || */ c == '\n')
 		{
 			input_line[input_line_index] = 0;
 			//PRINTF("line: %s\r\n", input_line);
@@ -39,15 +48,6 @@ void main(void)
 			input_line_index = 0;
 			input_line[0] = 0;
 		}
-
-		// PUTCHAR(c);
-		// if (c == '\r')
-		// 	PUTCHAR('\n');
-
-		if (c < 32 || c > 127)
-			PRINTF("%d ", c);
-		else
-			PRINTF("%c ", c);
 	}
 }
 
