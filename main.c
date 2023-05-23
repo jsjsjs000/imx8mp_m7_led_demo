@@ -25,19 +25,23 @@ void main(void)
 		// PUTCHAR(c);
 		// if (c == '\r')
 		// 	PUTCHAR('\n');
+
 		// if (c < 32 || c > 127)
 		// 	PRINTF("%d ", c);
 		// else
 		// 	PRINTF("'%c' ", c);
 
-		if (/* $$ c == '\r' || */ c == '\n')
+		if (c == '\r' || c == '\n')
 		{
 			input_line[input_line_index] = 0;
 			//PRINTF("line: %s\r\n", input_line);
 
-			char result[1024] = { 0 };
-			parse_line(input_line, result);
-			PRINTF("%s\r\n", result);
+			if (input_line_index > 0)
+			{
+				char result[1024] = { 0 };
+				parse_line(input_line, result);
+				PRINTF("%s\r\n", result);
+			}
 
 			input_line_index = 0;
 		}
