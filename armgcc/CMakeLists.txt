@@ -49,13 +49,13 @@ target_include_directories(${MCUX_SDK_PROJECT_NAME} PRIVATE
 )
 
 set(CMAKE_MODULE_PATH
-	~/Downloads/sdk/devices/MIMX8ML8/drivers
-	~/Downloads/sdk/devices/MIMX8ML8
-	~/Downloads/sdk/devices/MIMX8ML8/utilities
-	~/Downloads/sdk/components/uart
-	~/Downloads/sdk/components/serial_manager
-	~/Downloads/sdk/components/lists
-	~/Downloads/sdk/CMSIS/Core/Include
+	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/devices/MIMX8ML8/drivers
+	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/devices/MIMX8ML8
+	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/devices/MIMX8ML8/utilities
+	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/components/uart
+	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/components/serial_manager
+	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/components/lists
+	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/CMSIS/Core/Include
 )
 
 # include modules

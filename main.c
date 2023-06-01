@@ -57,7 +57,7 @@ void main(void)
 
 /*
 
-	SDK w ~/Downloads/sdk/
+	SDK w /opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/
 Wygeneruj i pobierz SDK na:
 # https://mcuxpresso.nxp.com/en/select
 # https://www.nxp.com account: jsjsjs000@gmail.com, wCCR72B2aV@zZ8S
@@ -65,10 +65,11 @@ Wygeneruj i pobierz SDK na:
 # SDK v2.11.1, Build MCUXpresso SDK
 # Download SDK > Download SDK archive including documentation
 cd ~/Downloads
-mkdir -p sdk
-cd sdk
-tar -xf SDK_2_11_1_MIMX8ML8xxxLZ.tar.gz
-git clone https://git.phytec.de/phytec-mcux-boards --branch SDK_2.11.1-phy
+sudo mkdir -p /opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ
+sudo tar -xf SDK_2_11_1_MIMX8ML8xxxLZ.tar.gz -C /opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ
+cd /opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ
+	# download phytec examples
+sudo git clone https://git.phytec.de/phytec-mcux-boards -b SDK_2.11.1-phy
 
 	Build prepare:
 sudo apt install gcc-arm-none-eabi binutils-arm-none-eabi make cmake
@@ -100,7 +101,7 @@ minicom -w -D /dev/ttyUSB1
 	Set TFTP server:
 sudo nano /etc/xinetd.d/tftp
 ------------------------------------------------------------
-	server_args = -s /home/p1887/Pulpit/imx8mp_uart_server/armgcc/debug
+	server_args = -s /home/p1887/Desktop/imx8mp_uart_server/armgcc/debug
 ------------------------------------------------------------
 sudo service xinetd restart
 

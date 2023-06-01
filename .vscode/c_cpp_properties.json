@@ -4,7 +4,7 @@
 			"name": "Linux",
 			"includePath": [
 				"${workspaceFolder}/**",
-				"~/Downloads/sdk/devices/MIMX8ML8/**"
+				"/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/devices/MIMX8ML8/**"
 			],
 			"defines": [],
 			"compilerPath": "/usr/bin/gcc",
