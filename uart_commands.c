@@ -93,7 +93,9 @@ static void execute_commands(const char *command, char *result)
 			value = parameters[0];
 		}
 		for (int i = 1; i < parameters_count; i++)
+		{
 			value -= parameters[i];
+		}
 
 		sprintf(result, "%d", value);
 		return;

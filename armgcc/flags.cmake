@@ -6,6 +6,7 @@ SET(CMAKE_ASM_FLAGS_DEBUG " \
     -g \
     -mcpu=cortex-m7 \
     -Wall \
+    -Werror-implicit-function-declaration \
     -Wno-address-of-packed-member \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
@@ -25,6 +26,7 @@ SET(CMAKE_ASM_FLAGS_RELEASE " \
     -D__STARTUP_INITIALIZE_NONCACHEDATA \
     -mcpu=cortex-m7 \
     -Wall \
+    -Werror-implicit-function-declaration \
     -Wno-address-of-packed-member \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
@@ -45,6 +47,7 @@ SET(CMAKE_ASM_FLAGS_DDR_DEBUG " \
     -g \
     -mcpu=cortex-m7 \
     -Wall \
+    -Werror-implicit-function-declaration \
     -Wno-address-of-packed-member \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
@@ -64,6 +67,7 @@ SET(CMAKE_ASM_FLAGS_DDR_RELEASE " \
     -D__STARTUP_INITIALIZE_NONCACHEDATA \
     -mcpu=cortex-m7 \
     -Wall \
+    -Werror-implicit-function-declaration \
     -Wno-address-of-packed-member \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
@@ -85,6 +89,7 @@ SET(CMAKE_ASM_FLAGS_FLASH_DEBUG " \
     -g \
     -mcpu=cortex-m7 \
     -Wall \
+    -Werror-implicit-function-declaration \
     -Wno-address-of-packed-member \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
@@ -105,6 +110,7 @@ SET(CMAKE_ASM_FLAGS_FLASH_RELEASE " \
     -D__STARTUP_INITIALIZE_NONCACHEDATA \
     -mcpu=cortex-m7 \
     -Wall \
+    -Werror-implicit-function-declaration \
     -Wno-address-of-packed-member \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
@@ -132,6 +138,7 @@ SET(CMAKE_C_FLAGS_DEBUG " \
     -O0 \
     -mcpu=cortex-m7 \
     -Wall \
+    -Werror-implicit-function-declaration \
     -Wno-address-of-packed-member \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
@@ -160,6 +167,7 @@ SET(CMAKE_C_FLAGS_RELEASE " \
     -Os \
     -mcpu=cortex-m7 \
     -Wall \
+    -Werror-implicit-function-declaration \
     -Wno-address-of-packed-member \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
@@ -189,6 +197,7 @@ SET(CMAKE_C_FLAGS_DDR_DEBUG " \
     -O0 \
     -mcpu=cortex-m7 \
     -Wall \
+    -Werror-implicit-function-declaration \
     -Wno-address-of-packed-member \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
@@ -217,6 +226,7 @@ SET(CMAKE_C_FLAGS_DDR_RELEASE " \
     -Os \
     -mcpu=cortex-m7 \
     -Wall \
+    -Werror-implicit-function-declaration \
     -Wno-address-of-packed-member \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
@@ -247,6 +257,7 @@ SET(CMAKE_C_FLAGS_FLASH_DEBUG " \
     -O0 \
     -mcpu=cortex-m7 \
     -Wall \
+    -Werror-implicit-function-declaration \
     -Wno-address-of-packed-member \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
@@ -276,6 +287,7 @@ SET(CMAKE_C_FLAGS_FLASH_RELEASE " \
     -Os \
     -mcpu=cortex-m7 \
     -Wall \
+    -Werror-implicit-function-declaration \
     -Wno-address-of-packed-member \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
@@ -301,6 +313,7 @@ SET(CMAKE_CXX_FLAGS_DEBUG " \
     -O0 \
     -mcpu=cortex-m7 \
     -Wall \
+    -Werror-implicit-function-declaration \
     -Wno-address-of-packed-member \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
@@ -326,6 +339,7 @@ SET(CMAKE_CXX_FLAGS_RELEASE " \
     -Os \
     -mcpu=cortex-m7 \
     -Wall \
+    -Werror-implicit-function-declaration \
     -Wno-address-of-packed-member \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
@@ -352,6 +366,7 @@ SET(CMAKE_CXX_FLAGS_DDR_DEBUG " \
     -O0 \
     -mcpu=cortex-m7 \
     -Wall \
+    -Werror-implicit-function-declaration \
     -Wno-address-of-packed-member \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
@@ -377,6 +392,7 @@ SET(CMAKE_CXX_FLAGS_DDR_RELEASE " \
     -Os \
     -mcpu=cortex-m7 \
     -Wall \
+    -Werror-implicit-function-declaration \
     -Wno-address-of-packed-member \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
@@ -404,6 +420,7 @@ SET(CMAKE_CXX_FLAGS_FLASH_DEBUG " \
     -O0 \
     -mcpu=cortex-m7 \
     -Wall \
+    -Werror-implicit-function-declaration \
     -Wno-address-of-packed-member \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \
@@ -430,6 +447,7 @@ SET(CMAKE_CXX_FLAGS_FLASH_RELEASE " \
     -Os \
     -mcpu=cortex-m7 \
     -Wall \
+    -Werror-implicit-function-declaration \
     -Wno-address-of-packed-member \
     -mfloat-abi=hard \
     -mfpu=fpv5-sp-d16 \

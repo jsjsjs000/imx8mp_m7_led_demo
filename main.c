@@ -1,10 +1,38 @@
 #include <stdlib.h>
-#include "fsl_device_registers.h"
-#include "fsl_debug_console.h"
-#include "pin_mux.h"
-#include "clock_config.h"
-#include "board.h"
-#include "uart_commands.h"
+#include <string.h>
+
+/* Freescale includes. */
+#include <fsl_device_registers.h>
+#include <fsl_debug_console.h>
+#include <fsl_uart_freertos.h>
+#include <fsl_uart.h>
+
+/* FreeRTOS kernel includes. */
+#include <FreeRTOS.h>
+#include <task.h>
+#include <queue.h>
+#include <timers.h>
+#include <semphr.h>
+
+/* Board config */
+#include "board_cfg/board.h"
+#include "board_cfg/clock_config.h"
+#include "board_cfg/pin_mux.h"
+
+#include "i2c_task.h"
+#include "uart_task.h"
+#include "rpmsg_task.h"
+
+#define master_task_PRIORITY (configMAX_PRIORITIES - 2)
+
+static void master_task(void *pvParameters);
+
+void delay_ms(int ms)
+{
+	volatile int d = 0;
+	for (int j = 0; j < ms * 75 * 1000; j++)
+		d++;
+}
 
 void main(void)
 {
@@ -14,46 +42,70 @@ void main(void)
 	BOARD_BootClockRUN();
 	BOARD_InitDebugConsole();
 
+// PRINTF("\r\nA ");
+// for (int i = 0; i < 20; i++)
+// {
+// 	delay_ms(1000);
+// 	PRINTF("%d ", i);
+// }
+// PRINTF("B\r\n");
+
+	i2c_master_initialize();
+	uart_initialize();
+	rpmsg_initialize();
+
 	PRINTF("\r\nCortex-M7 started.\r\n");
 
-	int input_line_index = 0;
-	char input_line[1024] = { 0 };
+	if (xTaskCreate(master_task, "Master_task", configMINIMAL_STACK_SIZE + 124, NULL,
+			master_task_PRIORITY, NULL) != pdPASS)
+	{
+		PRINTF("Failed to create master task.\r\n");
+		vTaskSuspend(NULL);
+	}
+
+	if (xTaskCreate(i2c_master_task, "I2C_task", 128, NULL,
+			master_task_PRIORITY, NULL) != pdPASS)
+	{
+		PRINTF("Failed to create I2C task.\r\n");
+		vTaskSuspend(NULL);
+	}
+
+	if (xTaskCreate(uart_task, "UART_task", 128, NULL, master_task_PRIORITY, NULL) != pdPASS)
+	{
+		PRINTF("Failed to create UART task.\r\n");
+		vTaskSuspend(NULL);
+	}
+
+	if (xTaskCreate(rpmsg_task, "RPMsg_task", 128, NULL, master_task_PRIORITY, NULL) != pdPASS)
+	{
+		PRINTF("Failed to create RPMsg task.\r\n");
+		vTaskSuspend(NULL);
+	}
+
+	PRINTF("Start scheduler.\r\n");
+	vTaskStartScheduler();
+	PRINTF("\r\nError: exit from scheduler.\r\n");
+	while (true) ;
+}
+
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
+{
+	PRINTF("\r\nError: stack overflow\r\n");
+}
+
+static void master_task(void *pvParameters)
+{
+	PRINTF("Master task started.\r\n");
+
 	while (true)
 	{
-		char c = GETCHAR();
-
-		// PUTCHAR(c);
-		// if (c == '\r')
-		// 	PUTCHAR('\n');
-
-		// if (c < 32 || c > 127)
-		// 	PRINTF("%d ", c);
-		// else
-		// 	PRINTF("'%c' ", c);
-
-		if (c == '\r' || c == '\n')
-		{
-			input_line[input_line_index] = 0;
-			//PRINTF("line: %s\r\n", input_line);
-
-			if (input_line_index > 0)
-			{
-				char result[1024] = { 0 };
-				parse_line(input_line, result);
-				PRINTF("%s\r\n", result);
-			}
-
-			input_line_index = 0;
-		}
-		else if (input_line_index < sizeof(input_line))
-			input_line[input_line_index++] = c;
-		else
-		{
-			input_line_index = 0;
-			input_line[0] = 0;
-		}
+// PRINTF("Main task tick.\r\n");
+		vTaskDelay(pdMS_TO_TICKS(5000));
 	}
+
+	vTaskSuspend(NULL);
 }
+
 
 /*
 
@@ -87,6 +139,7 @@ build_release.bat
 ./clean.sh
 ./build_debug.sh
 ./build_release.sh
+make # next builds
 	# Visual Studio Code:
 Ctrl+Shift+B - run Makefile
 
@@ -97,6 +150,8 @@ sudo adduser $USER dialout
 	Debug in UART1/2:
 minicom -w -D /dev/ttyUSB0
 minicom -w -D /dev/ttyUSB1
+	Connect to Linux via ssh
+ssh root@192.168.30.11
 
 	Set TFTP server:
 sudo nano /etc/xinetd.d/tftp
