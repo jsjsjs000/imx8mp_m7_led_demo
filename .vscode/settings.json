@@ -19,5 +19,6 @@
 		}
 	],
 	"makefile.makeDirectory": "armgcc",
-	"makefile.launchConfigurations": []
+	"makefile.launchConfigurations": [],
+	"cmake.sourceDirectory": "/home/p2119/Desktop/imx8mp_uart_server/armgcc"
 }

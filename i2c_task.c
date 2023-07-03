@@ -23,6 +23,11 @@
 
 #include "i2c_task.h"
 
+#define LED_COMMAND_OFF       0
+#define LED_COMMAND_LIGHT_25  1
+#define LED_COMMAND_LIGHT_50  2
+#define LED_COMMAND_LIGHT_100 3
+
 #define LED_OFF       0
 #define LED_LIGHT_25  2
 #define LED_LIGHT_50  3
@@ -38,18 +43,16 @@ static i2c_master_config_t masterConfig;
 static i2c_master_transfer_t masterXfer;
 static uint32_t sourceClock;
 
-static uint8_t r = LED_OFF;
-static uint8_t g = LED_OFF;
-static uint8_t b = LED_OFF;
+volatile uint8_t led_r = LED_OFF;
+volatile uint8_t led_g = LED_OFF;
+volatile uint8_t led_b = LED_OFF;
+volatile enum led_mode_t led_mode = LED_MODE_AUTO;
 
-static void i2c_set_leds(uint8_t r_, uint8_t g_, uint8_t b_);
+static void i2c_set_leds(uint8_t r, uint8_t g, uint8_t b);
 static void i2c_print_leds_status(char *message, uint8_t r, uint8_t g, uint8_t b);
 static void i2c_master_led_write(uint8_t r, uint8_t g, uint8_t b);
-static void i2c_master_led_read(uint8_t *r, uint8_t *g, uint8_t *b);
+static void i2c_master_led_read(volatile uint8_t *r, volatile uint8_t *g, volatile uint8_t *b);
 static void i2c_print_buffer(char *message, size_t length) __attribute__ ((unused));
-
-enum led_mode_t { LED_MODE_OFF, LED_MODE_RED, LED_MODE_GREEN, LED_MODE_BLUE, LED_MODE_AUTO };
-enum led_mode_t led_mode = LED_MODE_AUTO;
 
 void i2c_master_initialize(void)
 {
@@ -90,55 +93,46 @@ void i2c_master_task(void *pvParameters)
 {
 	PRINTF("I2C task started.\r\n");
 
-	i2c_master_led_read(&r, &g, &b);
-	i2c_print_leds_status("LEDS read:", r, g, b);
+	i2c_master_led_read(&led_r, &led_g, &led_b);
+	i2c_print_leds_status("LEDS read:", led_r, led_g, led_b);
+	i2c_set_leds(LED_OFF, LED_OFF, LED_OFF);
 
 	while (true)
 	{
 		if (led_mode == LED_MODE_AUTO)
 		{
-			i2c_set_leds(LED_LIGHT_25, LED_OFF, LED_OFF);
-			vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
-			i2c_set_leds(LED_OFF, LED_LIGHT_25, LED_OFF);
-			vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
-			i2c_set_leds(LED_OFF, LED_OFF, LED_LIGHT_25);
-			vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
+			int ticks = xTaskGetTickCount() * 1000 / configTICK_RATE_HZ;
+			int cycle = ticks / I2C_DELAY;
+			switch (cycle % 7)
+			{
+				case 0: i2c_set_leds(LED_LIGHT_25, LED_OFF, LED_OFF); break;
+				case 1: i2c_set_leds(LED_OFF, LED_LIGHT_25, LED_OFF); break;
+				case 2: i2c_set_leds(LED_OFF, LED_OFF, LED_LIGHT_25); break;
+				case 3: i2c_set_leds(LED_LIGHT_25, LED_LIGHT_25, LED_OFF); break;
+				case 4: i2c_set_leds(LED_LIGHT_25, LED_OFF, LED_LIGHT_25); break;
+				case 5: i2c_set_leds(LED_OFF, LED_LIGHT_25, LED_LIGHT_25); break;
+				case 6: i2c_set_leds(LED_LIGHT_50, LED_LIGHT_50, LED_LIGHT_25); break;
+			}
+		}
+		else if (led_mode == LED_MODE_MANUAL)
+		{
+			i2c_master_led_write(led_command_to_led_i2c(led_r), led_command_to_led_i2c(led_g),
+					led_command_to_led_i2c(led_b));
+		}
 
-			i2c_set_leds(LED_LIGHT_25, LED_LIGHT_25, LED_OFF);
-			vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
-			i2c_set_leds(LED_LIGHT_25, LED_OFF, LED_LIGHT_25);
-			vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
-			i2c_set_leds(LED_OFF, LED_LIGHT_25, LED_LIGHT_25);
-			vTaskDelay(pdMS_TO_TICKS(I2C_DELAY));
-		}
-		else if (led_mode == LED_MODE_OFF)
-		{
-			i2c_set_leds(LED_OFF, LED_OFF, LED_OFF);
-		}
-		else if (led_mode == LED_MODE_RED)
-		{
-			i2c_set_leds(LED_LIGHT_25, LED_OFF, LED_OFF);
-		}
-		else if (led_mode == LED_MODE_GREEN)
-		{
-			i2c_set_leds(LED_OFF, LED_LIGHT_25, LED_OFF);
-		}
-		else if (led_mode == LED_MODE_BLUE)
-		{
-			i2c_set_leds(LED_OFF, LED_OFF, LED_LIGHT_25);
-		}
+		vTaskDelay(pdMS_TO_TICKS(20));
 	}
 
 	vTaskSuspend(NULL);
 }
 
-static void i2c_set_leds(uint8_t r_, uint8_t g_, uint8_t b_)
+static void i2c_set_leds(uint8_t r, uint8_t g, uint8_t b)
 {
-	r = r_;
-	g = g_;
-	b = b_;
-	i2c_master_led_write(r, g, b);
-	i2c_print_leds_status("LEDS write:", r, g, b);
+	led_r = r;
+	led_g = g;
+	led_b = b;
+	i2c_master_led_write(led_r, led_g, led_b);
+	i2c_print_leds_status("LEDS write:", led_r, led_g, led_b);
 }
 
 __attribute__ ((unused))
@@ -146,10 +140,10 @@ static char* i2c_get_led_status(uint8_t value)
 {
 	switch (value)
 	{
-		case 0: return "  0%";
-		case 2: return " 25%";
-		case 3: return " 50%";
-		case 1: return "100%";
+		case LED_OFF:       return "  0%";
+		case LED_LIGHT_25:  return " 25%";
+		case LED_LIGHT_50:  return " 50%";
+		case LED_LIGHT_100: return "100%";
 	}
 	return "undef";
 }
@@ -191,7 +185,7 @@ static void i2c_master_led_write(uint8_t r, uint8_t g, uint8_t b)
 	}
 }
 
-static void i2c_master_led_read(uint8_t *r, uint8_t *g, uint8_t *b)
+static void i2c_master_led_read(volatile uint8_t *r, volatile uint8_t *g, volatile uint8_t *b)
 {
 	memset(&g_master_buff, 0, I2C_DATA_LENGTH);
 
@@ -227,4 +221,28 @@ static void i2c_print_buffer(char *message, size_t length)
 		PRINTF("%02x ", g_master_buff[i]);
 	}
 	PRINTF("\r\n\r\n");
+}
+
+uint8_t led_command_to_led_i2c(uint8_t a)
+{
+	switch (a)
+	{
+		case LED_COMMAND_OFF:       return LED_OFF;
+		case LED_COMMAND_LIGHT_25:  return LED_LIGHT_25;
+		case LED_COMMAND_LIGHT_50:  return LED_LIGHT_50;
+		case LED_COMMAND_LIGHT_100: return LED_LIGHT_100;
+		default: return LED_OFF;
+	}
+}
+
+uint8_t led_i2c_to_led_command(uint8_t a)
+{
+	switch (a)
+	{
+		case LED_OFF:       return LED_COMMAND_OFF;
+		case LED_LIGHT_25:  return LED_COMMAND_LIGHT_25;
+		case LED_LIGHT_50:  return LED_COMMAND_LIGHT_50;
+		case LED_LIGHT_100: return LED_COMMAND_LIGHT_100;
+		default: return LED_COMMAND_OFF;
+	}
 }

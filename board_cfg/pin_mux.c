@@ -79,6 +79,15 @@ void BOARD_InitPins(void)                                /*!< Function assigned 
 			IOMUXC_SW_PAD_CTL_PAD_PUE_MASK |
 			IOMUXC_SW_PAD_CTL_PAD_HYS_MASK |
 			IOMUXC_SW_PAD_CTL_PAD_PE_MASK);
+
+	// IOMUXC_SetPinMux(IOMUXC_SD1_CLK_GPIO2_IO00, 0U);
+	// IOMUXC_SetPinConfig(IOMUXC_SD1_CLK_GPIO2_IO00, 
+	// 		IOMUXC_SW_PAD_CTL_PAD_DSE(3U) |
+	// 		IOMUXC_SW_PAD_CTL_PAD_FSEL_MASK);
+	IOMUXC_SetPinMux(IOMUXC_SPDIF_EXT_CLK_GPIO5_IO05, 0U);
+	IOMUXC_SetPinConfig(IOMUXC_SPDIF_EXT_CLK_GPIO5_IO05, 
+			IOMUXC_SW_PAD_CTL_PAD_DSE(3U) |
+			IOMUXC_SW_PAD_CTL_PAD_FSEL_MASK);
 }
 
 /***********************************************************************************************************************

@@ -22,31 +22,29 @@
 #include <rpmsg_ns.h>
 #include "rpmsg/rsc_table.h"
 
+#include "common.h"
+#include "rpmsg_task.h"
+#include "i2c_task.h"
 
-
-
-#define RPMSG_LITE_LINK_ID            (RL_PLATFORM_IMX8MP_M7_USER_LINK_ID)
-#define RPMSG_LITE_SHMEM_BASE         (VDEV0_VRING_BASE)
-#define RPMSG_LITE_NS_ANNOUNCE_STRING "rpmsg-openamp-demo-channel"
-// #define RPMSG_LITE_MASTER_IS_LINUX
+#define RPMSG_LITE_LINK_ID             (RL_PLATFORM_IMX8MP_M7_USER_LINK_ID)
+#define RPMSG_LITE_SHMEM_BASE0         (VDEV0_VRING_BASE)
+#define RPMSG_LITE_SHMEM_BASE1         (VDEV1_VRING_BASE)
+#define RPMSG_LITE_NS_ANNOUNCE_STRING0 "rpmsg-openamp-channel-0"
+#define RPMSG_LITE_NS_ANNOUNCE_STRING1 "rpmsg-openamp-channel-1"
 
 #define APP_DEBUG_UART_BAUDRATE (115200U) /* Debug console baud rate. */
 #define APP_TASK_STACK_SIZE (256U)
 #define LOCAL_EPT_ADDR (30U)
 #define APP_RPMSG_READY_EVENT_DATA (1U)
 
-typedef struct the_message
-{
-    uint32_t DATA;
-} THE_MESSAGE, *THE_MESSAGE_PTR;
+volatile rpmsg_message_t rpmsg_message;
 
-static volatile THE_MESSAGE msg = {0};
-static char helloMsg[13];
+volatile uint32_t clock_correction = 0;
 
-static struct rpmsg_lite_instance *volatile my_rpmsg = NULL;
+static struct rpmsg_lite_instance *volatile rpmsg_instance = NULL;
 
-static struct rpmsg_lite_endpoint *volatile my_ept = NULL;
-static volatile rpmsg_queue_handle my_queue        = NULL;
+static struct rpmsg_lite_endpoint *volatile rpmsg_endpoint = NULL;
+static volatile rpmsg_queue_handle rpmsg_queue = NULL;
 
 static void app_nameservice_isr_cb(uint32_t new_ept, const char *new_ept_name, uint32_t flags, void *user_data);
 
@@ -58,51 +56,66 @@ void rpmsg_initialize(void)
 void rpmsg_task(void *pvParameters)
 {
 	PRINTF("RPMsg task started.\r\n");
-	PRINTF("RPMSG Share Base Addr is 0x%x\r\n", RPMSG_LITE_SHMEM_BASE);
+	PRINTF("RPMSG Share Base Addr is 0x%x\r\n", RPMSG_LITE_SHMEM_BASE0);
 
-	my_rpmsg = rpmsg_lite_remote_init((void *)RPMSG_LITE_SHMEM_BASE, RPMSG_LITE_LINK_ID, RL_NO_FLAGS);
-	while (0 == rpmsg_lite_is_link_up(my_rpmsg))
+	rpmsg_instance = rpmsg_lite_remote_init((void*)RPMSG_LITE_SHMEM_BASE0, RPMSG_LITE_LINK_ID, RL_NO_FLAGS);
+	while (0 == rpmsg_lite_is_link_up(rpmsg_instance))
 	{
 		vTaskDelay(pdMS_TO_TICKS(10));
 	}
 	PRINTF("RPMSG Link is up!\r\n");
 
-	my_queue  = rpmsg_queue_create(my_rpmsg);
-	my_ept    = rpmsg_lite_create_ept(my_rpmsg, LOCAL_EPT_ADDR, rpmsg_queue_rx_cb, my_queue);
-	volatile rpmsg_ns_handle ns_handle = rpmsg_ns_bind(my_rpmsg, app_nameservice_isr_cb, NULL);
-	/* Introduce some delay to avoid NS announce message not being captured by the master side.
-			This could happen when the remote side execution is too fast and the NS announce message is triggered
-			before the nameservice_isr_cb is registered on the master side. */
+	rpmsg_queue  = rpmsg_queue_create(rpmsg_instance);
+	rpmsg_endpoint    = rpmsg_lite_create_ept(rpmsg_instance, LOCAL_EPT_ADDR, rpmsg_queue_rx_cb, rpmsg_queue);
+	volatile rpmsg_ns_handle ns_handle = rpmsg_ns_bind(rpmsg_instance, app_nameservice_isr_cb, NULL);
 
+		/// Delay to avoid NS announce message not being captured by master side.
 	// SDK_DelayAtLeastUs(1000000U, SDK_DEVICE_MAXIMUM_CPU_CLOCK_FREQUENCY);
-	// vTaskDelay(pdMS_TO_TICKS(1000));
+	vTaskDelay(pdMS_TO_TICKS(1000));
 
-	rpmsg_ns_announce(my_rpmsg, my_ept, RPMSG_LITE_NS_ANNOUNCE_STRING, (uint32_t)RL_NS_CREATE);
+	rpmsg_ns_announce(rpmsg_instance, rpmsg_endpoint, RPMSG_LITE_NS_ANNOUNCE_STRING0, (uint32_t)RL_NS_CREATE);
 	PRINTF("RPMSG Nameservice announce sent.\r\n");
 
 	/* Wait Hello handshake message from Remote Core. */
 	volatile uint32_t remote_addr;
-	rpmsg_queue_recv(my_rpmsg, my_queue, (uint32_t *)&remote_addr, helloMsg, sizeof(helloMsg), NULL, RL_BLOCK);
+	char helloMsg[15];
+	memset(helloMsg, 0, sizeof(helloMsg));
+	rpmsg_queue_recv(rpmsg_instance, rpmsg_queue, (uint32_t*)&remote_addr, helloMsg, sizeof(helloMsg), NULL, RL_BLOCK);
+	PRINTF("Received: '%s'\r\n", helloMsg);
 
-// $$ while (msg.DATA <= 100U)
 	while (true)
 	{
-		PRINTF("Waiting for ping...\r\n");
-		rpmsg_queue_recv(my_rpmsg, my_queue, (uint32_t *)&remote_addr, (char *)&msg, sizeof(THE_MESSAGE),
+		rpmsg_queue_recv(rpmsg_instance, rpmsg_queue, (uint32_t*)&remote_addr, (char*)&rpmsg_message, sizeof(rpmsg_message_t),
 				NULL, RL_BLOCK);
-		msg.DATA++;
-		PRINTF("Sending pong...\r\n");
-		rpmsg_lite_send(my_rpmsg, my_ept, remote_addr, (char *)&msg, sizeof(THE_MESSAGE), RL_BLOCK);
+		uint32_t ms = xTaskGetTickCount() * 1000 / configTICK_RATE_HZ;
+		clock_correction = ms - rpmsg_message.time_milliseconds;
+		// PRINTF("Received: %d\r\n", rpmsg_message.time_milliseconds);
+
+		if (rpmsg_message.led_r != LED_COMMAND_UNDEFINED)
+		{
+			led_r = rpmsg_message.led_r;
+			led_g = rpmsg_message.led_g;
+			led_b = rpmsg_message.led_b;
+		}
+		if (rpmsg_message.led_mode != LED_COMMAND_UNDEFINED)
+		{
+			led_mode = rpmsg_message.led_mode;
+		}
+
+		rpmsg_message.led_r = led_r;
+		rpmsg_message.led_g = led_g;
+		rpmsg_message.led_b = led_b;
+		rpmsg_message.led_mode = led_mode;
+		rpmsg_lite_send(rpmsg_instance, rpmsg_endpoint, remote_addr, (char*)&rpmsg_message, sizeof(rpmsg_message), RL_BLOCK);
 	}
-	
-	rpmsg_lite_destroy_ept(my_rpmsg, my_ept);
-	my_ept = NULL;
-	rpmsg_queue_destroy(my_rpmsg, my_queue);
-	my_queue = NULL;
-	rpmsg_ns_unbind(my_rpmsg, ns_handle);
-	rpmsg_lite_deinit(my_rpmsg);
-	my_rpmsg = NULL;
-	msg.DATA = 0U;
+
+	rpmsg_lite_destroy_ept(rpmsg_instance, rpmsg_endpoint);
+	rpmsg_endpoint = NULL;
+	rpmsg_queue_destroy(rpmsg_instance, rpmsg_queue);
+	rpmsg_queue = NULL;
+	rpmsg_ns_unbind(rpmsg_instance, ns_handle);
+	rpmsg_lite_deinit(rpmsg_instance);
+	rpmsg_instance = NULL;
 
 	vTaskSuspend(NULL);
 }

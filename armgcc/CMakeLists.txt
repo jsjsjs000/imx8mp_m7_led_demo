@@ -43,6 +43,10 @@ add_executable(${MCUX_SDK_PROJECT_NAME}
 	"${ProjDirPath}/../rpmsg/rsc_table.c"
 	"${ProjDirPath}/../rpmsg/rsc_table.h"
 	"${ProjDirPath}/../rpmsg/remoteproc.h"
+	"${ProjDirPath}/../common.c"
+	"${ProjDirPath}/../common.h"
+	"${ProjDirPath}/../wdog.c"
+	"${ProjDirPath}/../wdog.h"
 	"${ProjDirPath}/../i2c_task.c"
 	"${ProjDirPath}/../i2c_task.h"
 	"${ProjDirPath}/../uart_commands.c"
@@ -63,6 +67,7 @@ set(CMAKE_MODULE_PATH
 	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/devices/MIMX8ML8/drivers
 	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/devices/MIMX8ML8
 	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/devices/MIMX8ML8/utilities
+	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/drivers
 	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/components/uart
 	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/components/serial_manager
 	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/components/lists
@@ -73,12 +78,14 @@ set(CMAKE_MODULE_PATH
 include(driver_clock_MIMX8ML8)
 include(driver_common_MIMX8ML8)
 include(driver_audiomix_MIMX8ML8)
+include(driver_wdog01_MIMX8ML8)
 include(device_MIMX8ML8_CMSIS_MIMX8ML8)
 include(utility_debug_console_MIMX8ML8)
 include(component_iuart_adapter_MIMX8ML8)
 include(component_serial_manager_MIMX8ML8)
 include(component_lists_MIMX8ML8)
 include(component_serial_manager_uart_MIMX8ML8)
+include(driver_igpio_MIMX8ML8)
 include(driver_iuart_MIMX8ML8)
 include(driver_ii2c_MIMX8ML8)
 include(device_MIMX8ML8_startup_MIMX8ML8)

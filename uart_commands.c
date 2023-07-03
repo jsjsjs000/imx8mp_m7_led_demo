@@ -4,6 +4,8 @@
 #include <string.h>
 #include <limits.h>
 #include "fsl_debug_console.h"
+#include "common.h"
+#include "i2c_task.h"
 
 #define words_max_count 32
 const char delimiter[] = " ";
@@ -12,22 +14,6 @@ static char *words[words_max_count];
 static int words_count = 0;
 static int parameters[words_max_count];
 static int parameters_count = 0;
-
-// print debug info about string
-void ds(char *s, int max_string)
-{
-	int i;
-	for (i = 0; i < max_string; i++)
-	{
-		if (s[i] == 0)
-		{
-			PRINTF("[NULL](%d)\r\n", i);
-			return;
-		}
-		PRINTF("%c", s[i]);
-	}
-	PRINTF("[-](%d)\r\n", i);
-}
 
 static void remove_last_r_or_n(char *word)
 {
@@ -101,6 +87,48 @@ static void execute_commands(const char *command, char *result)
 		return;
 	}
 
+	if (strcmp("leds", command) == 0)
+	{
+		if (parameters_count != 3)
+		{
+			strcpy(result, "error");
+			return;
+		}
+
+		led_r = parameters[0];
+		led_g = parameters[1];
+		led_b = parameters[2];
+		led_mode = LED_MODE_MANUAL;
+		sprintf(result, "%d %d %d", parameters[0], parameters[1], parameters[2]);
+		return;
+	}
+
+	if (strcmp("leds_mode", command) == 0)
+	{
+		if (parameters_count != 1)
+		{
+			strcpy(result, "error");
+			return;
+		}
+
+		led_mode = (enum led_mode_t)parameters[0];
+		sprintf(result, "auto");
+		return;
+	}
+
+	if (strcmp("leds_status", command) == 0)
+	{
+		if (parameters_count != 0)
+		{
+			strcpy(result, "error");
+			return;
+		}
+
+		sprintf(result, "leds_status %d %d %d %d", led_r, led_g, led_b, 
+				(led_mode == LED_MODE_AUTO) ? 1 : 0);
+		return;
+	}
+
 	strcpy(result, "error");
 }
 
@@ -121,7 +149,7 @@ bool parse_line(char *line, char *result)
 	while (word != NULL)
 	{
 		remove_last_rn(word);
-		// ds(word, 100);
+		// debug_string(word, 100);
 		if (words_count + 1 >= words_max_count)
 		{
 			free_memory();
@@ -154,7 +182,7 @@ bool parse_line(char *line, char *result)
 	// 	printf("%d\r\n", parameters[i]);
 
 	execute_commands(words[0], result);
-	// ds(result, 100);
+	// debug_string(result, 100);
 
 	free_memory();
 
