@@ -32,6 +32,12 @@ make # next builds
 	# Visual Studio Code:
 Ctrl+Shift+B - run Makefile
 
+# optional build only to assembler code:
+# flags.cmake:
+# SET(CMAKE_C_FLAGS_DEBUG " \
+# 	-fverbose-asm \
+# 	-S \
+
 	Add user to dialout group - access to UART without root permission
 sudo adduser $USER dialout
 # logout
