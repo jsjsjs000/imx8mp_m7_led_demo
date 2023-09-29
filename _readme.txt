@@ -18,6 +18,11 @@ export ARMGCC_DIR=/usr
 echo $ARMGCC_DIR
 echo export ARMGCC_DIR=/usr >> ~/.bashrc
 
+	Enable peripherals in:
+armgcc/config.cmake
+	from:
+/opt/MCUXpresso_SDK_2_14_0_MIMX8ML8xxxLZ/devices/MIMX8ML8/all_lib_device.cmake
+
 	Build:
 cd armgcc
 	# Windows:
@@ -31,6 +36,17 @@ build_release.bat
 make # next builds
 	# Visual Studio Code:
 Ctrl+Shift+B - run Makefile
+
+	Advanced PRINTF() and floating points numbers in PRINTF():
+armgcc/flags.cmake:
+	PRINTF_ADVANCED_ENABLE=1
+	PRINTF_FLOAT_ENABLE=1
+
+# optional build only to assembler code:
+# flags.cmake:
+# SET(CMAKE_C_FLAGS_DEBUG " \
+# 	-fverbose-asm \
+# 	-S \
 
 	Add user to dialout group - access to UART without root permission
 sudo adduser $USER dialout
@@ -66,7 +82,28 @@ tftp 0x48000000 imx8mp_uart_server.bin; cp.b 0x48000000 0x7e0000 0x20000; bootau
 	or
 # Press Ctrl+Alt+Q in minicom in Terminal
 
-	__NOP(); // No Operation
-	__WFI(); // Wait For Interrupt
-	__WFE(); // Wait For Event
-	__SEV(); // Send Event
+	Set autodownload M7 program by TFTP at startup in U-boot:
+setenv boot_m7 'tftp 0x48000000 imx8mp_uart_server.bin; cp.b 0x48000000 0x7e0000 0x20000; bootaux 0x7e0000'
+saveenv
+
+	Set start program M7 from SD card
+setenv boot_m7 'fatload mmc 1:1 0x48000000 imx8mp_uart_server.bin;cp.b 0x48000000 0x7e0000 0x20000;bootaux 0x7e0000'
+saveenv
+
+	Copy .bin program to SD card
+cd ~/jarsulk-pco/projects/SOD-5/Programs/m7/imx8mp_uart_server/armgcc
+cp debug/imx8mp_uart_server.bin /media/p2119/boot
+sync; umount /media/p2119/boot
+
+	Set U-boot to run M7 and hold in U-boot
+setenv bootcmd run boot_m7
+saveenv
+
+	Set U-boot to run M7 and run Linux
+setenv bootcmd 'run boot_m7; mmc dev ${mmcdev}; if mmc rescan; then env exists dofitboot || setenv dofitboot 0;env exists doraucboot || setenv doraucboot 0;run spiprobe; if test ${doraucboot} = 1; then run raucboot; elif run loadimage; then run mmcboot; else run netboot; fi; fi;'
+saveenv
+
+__NOP(); // No Operation
+__WFI(); // Wait For Interrupt
+__WFE(); // Wait For Event
+__SEV(); // Send Event

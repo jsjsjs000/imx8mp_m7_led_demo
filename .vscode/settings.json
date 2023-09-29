@@ -20,5 +20,5 @@
 	],
 	"makefile.makeDirectory": "armgcc",
 	"makefile.launchConfigurations": [],
-	"cmake.sourceDirectory": "/home/p2119/Desktop/imx8mp_uart_server/armgcc"
+	"cmake.sourceDirectory": "/home/p2119/jarsulk-pco/programs/imx8mp/m7/imx8mp_m7_led_demo/armgcc"
 }
