@@ -37,6 +37,12 @@ make # next builds
 	# Visual Studio Code:
 Ctrl+Shift+B - run Makefile
 
+FreeRTOSConfig.h:
+------------------------------------------------------------
+#define configUSE_PREEMPTION                    1
+#define configTICK_RATE_HZ                      ((TickType_t)1000)
+------------------------------------------------------------
+
 	Advanced formating PRINTF() and floating points numbers in PRINTF() and sprintf():
 armgcc/flags.cmake:
 -------------------------- add ----------------------------
