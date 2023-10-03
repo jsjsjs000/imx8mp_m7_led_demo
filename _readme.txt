@@ -37,16 +37,24 @@ make # next builds
 	# Visual Studio Code:
 Ctrl+Shift+B - run Makefile
 
-	Advanced PRINTF() and floating points numbers in PRINTF():
+	Advanced formating PRINTF() and floating points numbers in PRINTF() and sprintf():
 armgcc/flags.cmake:
-	PRINTF_ADVANCED_ENABLE=1
-	PRINTF_FLOAT_ENABLE=1
+-------------------------- add ----------------------------
+SET(CMAKE_ASM_FLAGS_DEBUG " \
+		-Werror-implicit-function-declaration \
+SET(CMAKE_C_FLAGS_DEBUG " \
+		-Werror-implicit-function-declaration \
+		-DPRINTF_FLOAT_ENABLE=1 \
+		-DPRINTF_ADVANCED_ENABLE=1 \
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG " \
+		-Werror-implicit-function-declaration \
+		-u _printf_float \
 
-# optional build only to assembler code:
-# flags.cmake:
+	# optional build only to assembler code:
 # SET(CMAKE_C_FLAGS_DEBUG " \
-# 	-fverbose-asm \
-# 	-S \
+# 		-fverbose-asm \
+# 		-S \
+------------------------------------------------------------
 
 	Add user to dialout group - access to UART without root permission
 sudo adduser $USER dialout
