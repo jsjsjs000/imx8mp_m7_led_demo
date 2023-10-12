@@ -43,6 +43,16 @@ FreeRTOSConfig.h:
 #define configTICK_RATE_HZ                      ((TickType_t)1000)
 ------------------------------------------------------------
 
+	Check stack overflow:
+FreeRTOSConfig.h:
+------------------------------------------------------------
+configCHECK_FOR_STACK_OVERFLOW 1
+------------------------------------------------------------
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
+	PRINTF("\r\nError: stack overflow\r\n");
+}
+------------------------------------------------------------
+
 	Advanced formating PRINTF() and floating points numbers in PRINTF() and sprintf():
 armgcc/flags.cmake:
 -------------------------- add ----------------------------
