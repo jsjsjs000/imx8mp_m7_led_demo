@@ -3,8 +3,16 @@ SET(CMAKE_SYSTEM_NAME Generic)
 CMAKE_MINIMUM_REQUIRED (VERSION 3.10.0)
 
 # THE VERSION NUMBER
-SET (Tutorial_VERSION_MAJOR 1)
-SET (Tutorial_VERSION_MINOR 0)
+SET (MCUXPRESSO_CMAKE_FORMAT_MAJOR_VERSION 2)
+SET (MCUXPRESSO_CMAKE_FORMAT_MINOR_VERSION 0)
+
+include(ide_overrides.cmake OPTIONAL)
+
+if(CMAKE_SCRIPT_MODE_FILE)
+  message("${MCUXPRESSO_CMAKE_FORMAT_MAJOR_VERSION}")
+  return()
+endif()
+
 
 # ENABLE ASM
 ENABLE_LANGUAGE(ASM)
@@ -21,11 +29,19 @@ SET(ProjDirPath ${CMAKE_CURRENT_SOURCE_DIR})
 SET(EXECUTABLE_OUTPUT_PATH ${ProjDirPath}/${CMAKE_BUILD_TYPE})
 SET(LIBRARY_OUTPUT_PATH ${ProjDirPath}/${CMAKE_BUILD_TYPE})
 
+
 project(imx8mp_uart_server)
+
+set(MCUX_BUILD_TYPES debug release ddr_debug ddr_release flash_debug flash_release)
 
 set(MCUX_SDK_PROJECT_NAME imx8mp_uart_server.elf)
 
+if (NOT DEFINED SdkRootDirPath)
+	SET(SdkRootDirPath /opt/MCUXpresso_SDK_2_14_0_MIMX8ML8xxxLZ)
+endif()
+
 include(${ProjDirPath}/flags.cmake)
+
 include(${ProjDirPath}/config.cmake)
 
 add_executable(${MCUX_SDK_PROJECT_NAME}
@@ -58,64 +74,31 @@ add_executable(${MCUX_SDK_PROJECT_NAME}
 )
 
 target_include_directories(${MCUX_SDK_PROJECT_NAME} PRIVATE
-    ${ProjDirPath}/..
+	${ProjDirPath}/..
 )
 
-set(CMAKE_MODULE_PATH
-	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/middleware/multicore
-	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/rtos/freertos/freertos_kernel
-	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/devices/MIMX8ML8/drivers
-	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/devices/MIMX8ML8
-	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/devices/MIMX8ML8/utilities
-	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/drivers
-	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/components/uart
-	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/components/serial_manager
-	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/components/lists
-	/opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/CMSIS/Core/Include
-)
+set_source_files_properties("${ProjDirPath}/../FreeRTOSConfig.h" PROPERTIES COMPONENT_CONFIG_FILE "middleware_freertos-kernel_template")
 
-# include modules
-include(driver_clock_MIMX8ML8)
-include(driver_common_MIMX8ML8)
-include(driver_audiomix_MIMX8ML8)
-include(driver_wdog01_MIMX8ML8)
-include(device_MIMX8ML8_CMSIS_MIMX8ML8)
-include(utility_debug_console_MIMX8ML8)
-include(component_iuart_adapter_MIMX8ML8)
-include(component_serial_manager_MIMX8ML8)
-include(component_lists_MIMX8ML8)
-include(component_serial_manager_uart_MIMX8ML8)
-include(driver_igpio_MIMX8ML8)
-include(driver_iuart_MIMX8ML8)
-include(driver_ii2c_MIMX8ML8)
-include(device_MIMX8ML8_startup_MIMX8ML8)
-include(utility_assert_MIMX8ML8)
-include(CMSIS_Include_core_cm_MIMX8ML8)
-include(utilities_misc_utilities_MIMX8ML8)
-include(device_MIMX8ML8_system_MIMX8ML8)
-
-# FreeRTOS modules
-include(middleware_freertos-kernel_MIMX8ML8)
-include(middleware_freertos-kernel_extension_MIMX8ML8)
-include(middleware_freertos-kernel_heap_4_MIMX8ML8)
-include(driver_iuart_freertos_MIMX8ML8)
-include(driver_ii2c_freertos_MIMX8ML8)
+include(${SdkRootDirPath}/devices/MIMX8ML8/all_lib_device.cmake)
 
 # RPMsg modules
-include(middleware_multicore_rpmsg_lite_MIMX8ML8)
-include(middleware_multicore_rpmsg_lite_imx8mp_m7_freertos_MIMX8ML8)
-include(middleware_multicore_rpmsg_lite_freertos_MIMX8ML8)
-include(driver_mu_MIMX8ML8)
-include(driver_rdc_MIMX8ML8)
+# include(middleware_multicore_rpmsg_lite.MIMX8ML8)
+# include(middleware_multicore_rpmsg_lite_imx8mp_m7_freertos.MIMX8ML8)
+# include(middleware_multicore_rpmsg_lite_freertos.MIMX8ML8)
+# include(driver_mu.MIMX8ML8)
+# include(driver_rdc.MIMX8ML8)
 
-# check armgcc/config.cmake
+IF(NOT DEFINED TARGET_LINK_SYSTEM_LIBRARIES)  
+	SET(TARGET_LINK_SYSTEM_LIBRARIES "-lm -lc -lgcc -lnosys")  
+ENDIF()  
 
 TARGET_LINK_LIBRARIES(${MCUX_SDK_PROJECT_NAME} PRIVATE -Wl,--start-group)
-target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE m)
-target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE c)
-target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE gcc)
-target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE nosys)
+
+target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE ${TARGET_LINK_SYSTEM_LIBRARIES})
+
 TARGET_LINK_LIBRARIES(${MCUX_SDK_PROJECT_NAME} PRIVATE -Wl,--end-group)
 
 ADD_CUSTOM_COMMAND(TARGET ${MCUX_SDK_PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_OBJCOPY}
 -Obinary ${EXECUTABLE_OUTPUT_PATH}/${MCUX_SDK_PROJECT_NAME} ${EXECUTABLE_OUTPUT_PATH}/imx8mp_uart_server.bin)
+
+set_target_properties(${MCUX_SDK_PROJECT_NAME} PROPERTIES ADDITIONAL_CLEAN_FILES "output.map;${EXECUTABLE_OUTPUT_PATH}/imx8mp_uart_server.bin")

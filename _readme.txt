@@ -1,4 +1,4 @@
-	SDK w /opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ/
+	SDK w /opt/MCUXpresso_SDK_2_14_0_MIMX8ML8xxxLZ/
 Wygeneruj i pobierz SDK na:
 # https://mcuxpresso.nxp.com/en/select
 # https://www.nxp.com account: jsjsjs000@gmail.com, wCCR72B2aV@zZ8S
@@ -6,9 +6,9 @@ Wygeneruj i pobierz SDK na:
 # SDK v2.11.1, Build MCUXpresso SDK
 # Download SDK > Download SDK archive including documentation
 cd ~/Downloads
-sudo mkdir -p /opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ
-sudo tar -xf SDK_2_11_1_MIMX8ML8xxxLZ.tar.gz -C /opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ
-cd /opt/MCUXpresso_SDK_2_11_1_MIMX8ML8xxxLZ
+sudo mkdir -p /opt/MCUXpresso_SDK_2_14_0_MIMX8ML8xxxLZ
+sudo tar -xf SDK_2_14_0_MIMX8ML8xxxLZ.tar.gz -C /opt/MCUXpresso_SDK_2_14_0_MIMX8ML8xxxLZ
+cd /opt/MCUXpresso_SDK_2_14_0_MIMX8ML8xxxLZ
 	# download phytec examples
 sudo git clone https://git.phytec.de/phytec-mcux-boards -b SDK_2.11.1-phy
 
